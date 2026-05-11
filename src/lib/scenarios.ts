@@ -226,12 +226,13 @@ export const SCENARIOS: Scenario[] = [
   },
 ];
 
-export const LEVELS = [
+export type LevelDef = { name: string; min: number };
+export const LEVELS: LevelDef[] = [
   { name: "Beginner", min: 0 },
   { name: "Aware User", min: 30 },
   { name: "Security Analyst", min: 70 },
   { name: "Cyber Defender", min: 110 },
-] as const;
+];
 
 export function getLevel(xp: number) {
   let current = LEVELS[0];
