@@ -149,17 +149,15 @@ function PlayPage() {
         </motion.div>
       </div>
 
-      {chosen !== null || delta < 0 ? (
-        chosen || delta !== 0 ? (
-          <FeedbackOverlay
-            scenario={scenario}
-            chosen={chosen}
-            delta={delta}
-            isLast={index + 1 >= total}
-            onNext={next_}
-          />
-        ) : null
-      ) : null}
+      {(chosen || delta !== 0) && (
+        <FeedbackOverlay
+          scenario={scenario}
+          chosen={chosen}
+          delta={delta}
+          isLast={index + 1 >= total}
+          onNext={next_}
+        />
+      )}
     </div>
   );
 }
