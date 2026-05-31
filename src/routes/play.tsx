@@ -6,8 +6,8 @@ import { ScenarioPreview } from "@/components/ScenarioPreview";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { FeedbackOverlay } from "@/components/FeedbackOverlay";
 import { SCENARIOS, getLevel, type Choice } from "@/lib/scenarios";
-import { useGame } from "@/lib/game-store";
-import { ShieldAlert, Flame, Trophy } from "lucide-react";
+import { useGame, VECTOR_LABELS, type Attempt } from "@/lib/game-store";
+import { ShieldAlert, Flame, Trophy, UserCircle } from "lucide-react";
 
 export const Route = createFileRoute("/play")({
   component: PlayPage,
@@ -19,16 +19,26 @@ export const Route = createFileRoute("/play")({
   }),
 });
 
+// Adaptive queue: Easy first, then Medium, then Hard — maintains learning curve
+function buildQueue() {
+  const easy = SCENARIOS.filter((s) => s.difficulty === "Easy");
+  const medium = SCENARIOS.filter((s) => s.difficulty === "Medium");
+  const hard = SCENARIOS.filter((s) => s.difficulty === "Hard");
+  return [...easy, ...medium, ...hard];
+}
+
 function PlayPage() {
   const { state, recordAttempt } = useGame();
+  const [queue] = useState(buildQueue);
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<Choice | null>(null);
   const [delta, setDelta] = useState(0);
   const [startedAt, setStartedAt] = useState(Date.now());
+  const [patternNote, setPatternNote] = useState<string | undefined>();
   const navigate = useNavigate();
 
-  const scenario = SCENARIOS[index];
-  const total = SCENARIOS.length;
+  const scenario = queue[index];
+  const total = queue.length;
   const { current, next } = getLevel(state.xp);
   const progressToNext = next
     ? Math.min(100, ((state.xp - current.min) / (next.min - current.min)) * 100)
@@ -38,7 +48,9 @@ function PlayPage() {
     (choice: Choice | null) => {
       if (chosen) return;
       const timeMs = Date.now() - startedAt;
+      const timerPct = Math.max(0, 1 - timeMs / (scenario.timer * 1000));
       const points = choice?.correct ? 10 : choice ? -5 : -3;
+
       setChosen(choice);
       setDelta(points);
       recordAttempt({
@@ -46,10 +58,42 @@ function PlayPage() {
         choiceId: choice?.id ?? "timeout",
         correct: !!choice?.correct,
         timeMs,
+        timerPct,
         pointsDelta: points,
       });
+
+      // Compute pattern note inline for the overlay
+      if (!choice?.correct) {
+        const newAttempt: Attempt = {
+          scenarioId: scenario.id,
+          choiceId: choice?.id ?? "timeout",
+          correct: false,
+          timeMs,
+          timerPct,
+          pointsDelta: points,
+          at: Date.now(),
+        };
+        const allAttempts = [...state.attempts, newAttempt];
+        const vectorFailures: Record<string, number> = {};
+        for (const a of allAttempts) {
+          if (!a.correct) {
+            const s = SCENARIOS.find((x) => x.id === a.scenarioId);
+            if (s) vectorFailures[s.attackVector] = (vectorFailures[s.attackVector] ?? 0) + 1;
+          }
+        }
+        const count = vectorFailures[scenario.attackVector] ?? 0;
+        if (count >= 2) {
+          setPatternNote(
+            `${count} ${VECTOR_LABELS[scenario.attackVector] ?? scenario.attackVector} attacks missed this session — attackers are exploiting a consistent gap.`,
+          );
+        } else {
+          setPatternNote(undefined);
+        }
+      } else {
+        setPatternNote(undefined);
+      }
     },
-    [chosen, recordAttempt, scenario.id, startedAt],
+    [chosen, recordAttempt, scenario, startedAt, state.attempts],
   );
 
   const next_ = () => {
@@ -60,6 +104,7 @@ function PlayPage() {
     setIndex((i) => i + 1);
     setChosen(null);
     setDelta(0);
+    setPatternNote(undefined);
     setStartedAt(Date.now());
   };
 
@@ -88,7 +133,7 @@ function PlayPage() {
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
               <div
                 className="h-full bg-neon-gradient transition-all"
-                style={{ width: `${((index) / total) * 100}%` }}
+                style={{ width: `${(index / total) * 100}%` }}
               />
             </div>
             <div className="mt-1 font-mono text-[10px] text-muted-foreground">
@@ -96,6 +141,14 @@ function PlayPage() {
             </div>
           </div>
         </div>
+
+        {/* Role badge */}
+        {state.role && (
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-neon/30 bg-neon/5 px-3 py-1 font-mono text-[11px] uppercase text-neon">
+            <UserCircle className="h-3.5 w-3.5" />
+            Playing as: {state.role}
+          </div>
+        )}
 
         <motion.div
           key={scenario.id}
@@ -110,6 +163,9 @@ function PlayPage() {
               </span>
               <span className="font-mono text-[10px] uppercase text-muted-foreground border border-border rounded-full px-2 py-0.5">
                 {scenario.category}
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground border border-border rounded-full px-2 py-0.5">
+                {scenario.mitreId}
               </span>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold">{scenario.title}</h2>
@@ -149,13 +205,14 @@ function PlayPage() {
         </motion.div>
       </div>
 
-      {(chosen || delta !== 0) && (
+      {(chosen !== undefined && (chosen !== null || delta !== 0)) && (
         <FeedbackOverlay
           scenario={scenario}
           chosen={chosen}
           delta={delta}
           isLast={index + 1 >= total}
           onNext={next_}
+          patternNote={patternNote}
         />
       )}
     </div>

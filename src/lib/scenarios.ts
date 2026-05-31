@@ -1,4 +1,5 @@
 export type Difficulty = "Easy" | "Medium" | "Hard";
+export type AttackVector = "urgency" | "authority" | "technical" | "social" | "process";
 
 export type Choice = {
   id: string;
@@ -12,8 +13,12 @@ export type Scenario = {
   title: string;
   category: string;
   difficulty: Difficulty;
-  timer: number; // seconds
+  timer: number;
   description: string;
+  attackVector: AttackVector;
+  redFlags: string[];
+  realWorldExample: string;
+  mitreId: string;
   preview: {
     type: "email" | "message" | "popup" | "url" | "device";
     from?: string;
@@ -33,6 +38,14 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Easy",
     timer: 45,
     description: "You received this email claiming to be from your bank.",
+    attackVector: "urgency",
+    redFlags: [
+      "Domain is 'secure-bank-verify.com' — not your bank's actual domain",
+      "Threat of account suspension is engineered to trigger panic",
+      "No personal greeting — mass phishing template sent to thousands",
+    ],
+    realWorldExample: "Mirrors the 2022 Chase Bank phishing campaign that harvested credentials from over 50,000 customers before detection.",
+    mitreId: "T1566.002",
     preview: {
       type: "email",
       from: "support@secure-bank-verify.com",
@@ -54,6 +67,14 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Medium",
     timer: 40,
     description: "You receive this from someone claiming to be your CEO.",
+    attackVector: "authority",
+    redFlags: [
+      "Domain is 'company-corp-mail.com' — not the official company domain",
+      "'Don't call' instruction deliberately removes your ability to verify",
+      "No purchase order, reference number, or approval chain mentioned",
+    ],
+    realWorldExample: "Matches the 2016 Ubiquiti Networks BEC attack — attackers impersonated the CEO and stole $46.7 million in a single wire transfer.",
+    mitreId: "T1534",
     preview: {
       type: "email",
       from: "ceo.johnson@company-corp-mail.com",
@@ -75,7 +96,15 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Easy",
     timer: 30,
     description: "You find a USB drive labeled 'Salaries 2025' in the office parking lot.",
-    preview: { type: "device", body: "Unlabeled USB stick found near the entrance. Curiosity is high." },
+    attackVector: "social",
+    redFlags: [
+      "Unknown physical media from an unverified source",
+      "Label 'Salaries 2025' is crafted to trigger curiosity and override caution",
+      "Found in an uncontrolled area — classic baiting placement",
+    ],
+    realWorldExample: "This exact technique was used in the 2008 US DoD breach (Operation Buckshot Yankee) — infected drives left in Pentagon parking lots compromised classified networks.",
+    mitreId: "T1091",
+    preview: { type: "device", body: "USB drive found near the building entrance. Label reads: 'Salaries 2025 — Confidential'." },
     choices: [
       { id: "a", label: "Plug it in to find the owner", correct: false, explanation: "USB drops are a common attack to deliver malware on insertion." },
       { id: "b", label: "Take it home and check on personal laptop", correct: false, explanation: "Same risk, just on a different device." },
@@ -91,10 +120,18 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Medium",
     timer: 35,
     description: "A link from a search ad opens this URL. Your password manager doesn't auto-fill.",
+    attackVector: "technical",
+    redFlags: [
+      "Domain is 'accounts-google.secure-login-portal.io' — not google.com",
+      "Password manager refused to auto-fill — it matched the exact domain and found no credentials",
+      "Arrived via a paid search ad, not a trusted bookmark or direct navigation",
+    ],
+    realWorldExample: "This technique was used in the 2022 Twilio and Cloudflare attacks — employees were lured to pixel-perfect fake login pages that harvested credentials in real time.",
+    mitreId: "T1566.002",
     preview: {
       type: "url",
       url: "https://accounts-google.secure-login-portal.io/signin",
-      body: "Standard-looking Google sign-in page asking for your email and password.",
+      body: "Standard-looking Google sign-in page requesting your email and password. Your password manager shows no saved credentials for this site.",
     },
     choices: [
       { id: "a", label: "Enter credentials — page looks normal", correct: false, explanation: "The domain is not google.com. Your password manager refusing to fill is a strong signal." },
@@ -102,7 +139,7 @@ export const SCENARIOS: Scenario[] = [
       { id: "c", label: "Use your work password instead", correct: false, explanation: "Reusing or substituting passwords on suspicious sites still leaks credentials." },
       { id: "d", label: "Sign in with Google SSO popup on the page", correct: false, explanation: "Fake SSO popups are common phishing payloads." },
     ],
-    bestPractice: "Trust your password manager — it matches by exact domain. Anomalies mean stop.",
+    bestPractice: "Trust your password manager — it matches by exact domain. When it won't fill, stop.",
   },
   {
     id: "s5",
@@ -111,6 +148,14 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Medium",
     timer: 40,
     description: "Someone calls claiming to be IT, asking for your password to fix a 'critical issue'.",
+    attackVector: "authority",
+    redFlags: [
+      "Legitimate IT teams never ask for your password — ever",
+      "Unknown number not listed in the company directory",
+      "'Before EOD' deadline is designed to prevent you from thinking clearly",
+    ],
+    realWorldExample: "This vishing technique was central to the 2020 Twitter hack — attackers called Twitter staff impersonating IT to gain access to internal tools, then hijacked accounts of Obama, Biden, and Elon Musk.",
+    mitreId: "T1598",
     preview: {
       type: "message",
       from: "+1 (555) 010-9921",
@@ -118,8 +163,8 @@ export const SCENARIOS: Scenario[] = [
     },
     choices: [
       { id: "a", label: "Give them the password to be safe", correct: false, explanation: "IT never asks for your password. Ever." },
-      { id: "b", label: "Ask for their employee ID and email it to them", correct: false, explanation: "Attackers easily fake IDs." },
-      { id: "c", label: "Hang up and contact IT through the official internal channel", correct: true, explanation: "Verify through known internal directories or ticketing." },
+      { id: "b", label: "Ask for their employee ID and email it to them", correct: false, explanation: "Attackers easily fake IDs. This doesn't verify anything." },
+      { id: "c", label: "Hang up and contact IT through the official internal channel", correct: true, explanation: "Verify through known internal directories or ticketing systems." },
       { id: "d", label: "Put them on hold while you check Slack", correct: false, explanation: "Better, but hanging up is safest. Don't keep social engineers on the line." },
     ],
     bestPractice: "Legitimate IT teams never request your password. Always verify via internal channels.",
@@ -131,15 +176,23 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Medium",
     timer: 35,
     description: "An unexpected email with an attached invoice arrives.",
+    attackVector: "process",
+    redFlags: [
+      "File is '.docm' — a macro-enabled Word document, a top malware delivery vector",
+      "'Enable macros to view' is a classic social engineering prompt used by malware",
+      "Sender domain 'acmme-supplies.com' has a doubled letter — a deliberate typosquat",
+    ],
+    realWorldExample: "Emotet, the most destructive malware of 2017–2020, was delivered almost exclusively through macro-enabled Office documents sent as fake invoices like this one.",
+    mitreId: "T1566.001",
     preview: {
       type: "email",
       from: "billing@acmme-supplies.com",
       subject: "Invoice #INV-99812 — Past Due",
-      body: "Please find attached invoice INV-99812.docm. Open and enable macros to view the secure content.",
+      body: "Please find attached invoice INV-99812.docm. Open and enable macros to view the secure content. Payment is overdue — please action urgently.",
     },
     choices: [
       { id: "a", label: "Open the file and enable macros", correct: false, explanation: "Macro-enabled docs are a top malware delivery method." },
-      { id: "b", label: "Save the file and scan with antivirus before opening", correct: false, explanation: "AV may miss novel malware. Best to not open unsolicited attachments." },
+      { id: "b", label: "Save the file and scan with antivirus before opening", correct: false, explanation: "AV may miss novel malware. Best not to open unsolicited attachments at all." },
       { id: "c", label: "Verify with the supposed sender via a known contact, then report to IT", correct: true, explanation: "Confirm legitimacy out-of-band; report unsolicited attachments." },
       { id: "d", label: "Forward to your manager to decide", correct: false, explanation: "Spreads risk to others. Report through proper channels first." },
     ],
@@ -152,13 +205,21 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Easy",
     timer: 30,
     description: "You need to check your bank balance while waiting for a flight.",
+    attackVector: "process",
+    redFlags: [
+      "Open network with no password — no encryption on your traffic",
+      "Generic SSID 'Free_Airport_WiFi' is commonly spoofed by rogue access points",
+      "No captive portal or certificate to verify the network's legitimacy",
+    ],
+    realWorldExample: "Rogue AP attacks are demonstrated annually at DEF CON. In 2017, researchers intercepted unencrypted credentials from hundreds of conference attendees within minutes of setting up a fake AP.",
+    mitreId: "T1557",
     preview: {
       type: "message",
       from: "Available networks",
-      body: "Free_Airport_WiFi (open) — Strong signal. No password required.",
+      body: "Free_Airport_WiFi (open) — Strong signal. No password required. 412 users connected.",
     },
     choices: [
-      { id: "a", label: "Connect and access banking — it's quick", correct: false, explanation: "Open networks expose traffic to interception and rogue APs." },
+      { id: "a", label: "Connect and access banking — it's quick", correct: false, explanation: "Open networks expose all traffic to interception and rogue APs." },
       { id: "b", label: "Use cellular data or a trusted VPN before logging in", correct: true, explanation: "Cellular or VPN encrypts traffic and prevents man-in-the-middle attacks." },
       { id: "c", label: "Connect, but use HTTP only", correct: false, explanation: "HTTP transmits data in plaintext — worse, not better." },
       { id: "d", label: "Connect and disable firewall to speed up", correct: false, explanation: "Disabling defenses on a hostile network is dangerous." },
@@ -172,17 +233,25 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Hard",
     timer: 30,
     description: "A popup appears while browsing a news site.",
+    attackVector: "technical",
+    redFlags: [
+      "Browsers update themselves — they never prompt via web page popups",
+      "Offers a downloadable .exe file from a random website",
+      "Appeared on a third-party news site — content injection or malvertising vector",
+    ],
+    realWorldExample: "FakeUpdates (SocGholish) — active since 2018 and still among the top malware campaigns — uses fake browser update overlays to deliver remote access trojans to tens of thousands of victims.",
+    mitreId: "T1189",
     preview: {
       type: "popup",
-      body: "Your Chrome is out of date! Critical security update required. Click here to install ChromeUpdate.exe immediately.",
+      body: "⚠ Your Chrome browser is critically out of date! A security update is required immediately. Click Install to download ChromeUpdate.exe and protect your system.",
     },
     choices: [
       { id: "a", label: "Download and run the updater", correct: false, explanation: "Browsers update themselves — popups offering downloads deliver malware." },
-      { id: "b", label: "Close the popup and update Chrome from chrome://settings/help", correct: true, explanation: "Always update software from inside the application or vendor site." },
-      { id: "c", label: "Allow notifications to receive the update", correct: false, explanation: "Allowing notifications opens further phishing vectors." },
-      { id: "d", label: "Click 'Remind me later'", correct: false, explanation: "Buttons in malicious popups can trigger downloads regardless of label." },
+      { id: "b", label: "Close the popup and update Chrome from chrome://settings/help", correct: true, explanation: "Always update software from inside the application or the vendor's official site." },
+      { id: "c", label: "Allow notifications to receive the update", correct: false, explanation: "Allowing notifications opens further phishing and push-notification attack vectors." },
+      { id: "d", label: "Click 'Remind me later'", correct: false, explanation: "Buttons in malicious popups can trigger downloads regardless of which button you click." },
     ],
-    bestPractice: "Updates come from the software itself, never from random popups.",
+    bestPractice: "Updates come from inside the software itself — never from web page popups.",
   },
   {
     id: "s9",
@@ -191,18 +260,26 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Hard",
     timer: 35,
     description: "A QR code sticker on a parking meter promises 'Quick mobile pay'.",
+    attackVector: "technical",
+    redFlags: [
+      "Sticker appears to be placed over original meter signage — check for physical tampering",
+      "Domain 'parkpay-secure.app' is not an official city or known parking service",
+      "No official city branding or seal on the sticker",
+    ],
+    realWorldExample: "In 2022, the FBI issued a public alert after attackers planted fake QR code stickers on parking meters across Austin, San Antonio, and Houston — harvesting payment data from hundreds of victims.",
+    mitreId: "T1566.002",
     preview: {
       type: "url",
       url: "https://parkpay-secure.app/pay?meter=3321",
-      body: "Sticker placed over the original meter signage. The URL is unfamiliar.",
+      body: "A sticker placed on the meter reads: 'Scan to Pay — Quick Mobile Payment'. The linked URL is unfamiliar and not associated with the city's official parking service.",
     },
     choices: [
       { id: "a", label: "Scan and pay — convenient", correct: false, explanation: "Quishing: attackers paste fake QR codes over legitimate ones to harvest payment info." },
-      { id: "b", label: "Use the city's official parking app or pay at the meter directly", correct: true, explanation: "Use known apps from official sources only." },
-      { id: "c", label: "Scan and check the URL only", correct: false, explanation: "The URL look-alike is deceptive; many users miss subtle differences." },
-      { id: "d", label: "Scan and enter test info first", correct: false, explanation: "Even visiting the page may load tracking or exploit kits." },
+      { id: "b", label: "Use the city's official parking app or pay at the meter directly", correct: true, explanation: "Use known apps from official sources only. Verify QR code origins before scanning." },
+      { id: "c", label: "Scan and check the URL before doing anything", correct: false, explanation: "Look-alike URLs are deceptive — many users miss subtle differences under time pressure." },
+      { id: "d", label: "Scan and enter test info first", correct: false, explanation: "Even visiting the page may load tracking scripts or exploit kits." },
     ],
-    bestPractice: "Treat unexpected QR codes like unknown links. Prefer official apps.",
+    bestPractice: "Treat unexpected QR codes like unknown links. Check for physical tampering and prefer official apps.",
   },
   {
     id: "s10",
@@ -211,18 +288,26 @@ export const SCENARIOS: Scenario[] = [
     difficulty: "Hard",
     timer: 30,
     description: "An unexpected Slack message lands in your DMs.",
+    attackVector: "technical",
+    redFlags: [
+      "Domain is 'helpdesk-portal.co' — not slack.com",
+      "Real Slackbot never sends DM password reset links — resets always come via email",
+      "Unsolicited security notice you did not trigger yourself",
+    ],
+    realWorldExample: "Slack bot impersonation was used in the 2022 Rockstar Games breach — attackers used this technique to access GTA VI development footage and source code, causing hundreds of millions in damages.",
+    mitreId: "T1566.002",
     preview: {
       type: "message",
       from: "Slackbot (impersonator)",
-      body: "Security notice: We detected an unusual login. Reset your password here: https://slack-account-reset.helpdesk-portal.co/u/9981",
+      body: "Security notice: We detected an unusual login attempt on your account. Reset your password immediately to secure your workspace: https://slack-account-reset.helpdesk-portal.co/u/9981",
     },
     choices: [
-      { id: "a", label: "Click and reset password to be safe", correct: false, explanation: "Domain is not slack.com. Real Slackbot doesn't DM password reset links." },
-      { id: "b", label: "Open Slack settings directly and review active sessions", correct: true, explanation: "Manage account security from inside the app you trust." },
-      { id: "c", label: "Reply 'who is this?'", correct: false, explanation: "Engaging the attacker confirms you're a live target." },
-      { id: "d", label: "Click the link but don't enter password", correct: false, explanation: "Just visiting can fingerprint your device or trigger drive-by exploits." },
+      { id: "a", label: "Click and reset password to be safe", correct: false, explanation: "Domain is not slack.com. Real Slackbot never DMs password reset links." },
+      { id: "b", label: "Open Slack settings directly and review active sessions", correct: true, explanation: "Manage account security from inside the app you trust, not from inbound links." },
+      { id: "c", label: "Reply 'who is this?'", correct: false, explanation: "Engaging the attacker confirms you're a live target and keeps the conversation open." },
+      { id: "d", label: "Click the link but don't enter your password", correct: false, explanation: "Just visiting the page can fingerprint your device or trigger drive-by exploit kits." },
     ],
-    bestPractice: "Manage account security from inside the official app, not from inbound links.",
+    bestPractice: "Manage account security from inside the official app — never from unsolicited inbound links.",
   },
 ];
 
