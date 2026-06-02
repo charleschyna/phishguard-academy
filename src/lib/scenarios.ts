@@ -19,6 +19,8 @@ export type Scenario = {
   redFlags: string[];
   realWorldExample: string;
   mitreId: string;
+  cognitiveBias: string;
+  manipulationTechnique: string;
   preview: {
     type: "email" | "message" | "popup" | "url" | "device";
     from?: string;
@@ -46,6 +48,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "Mirrors the 2022 Chase Bank phishing campaign that harvested credentials from over 50,000 customers before detection.",
     mitreId: "T1566.002",
+    cognitiveBias: "Loss Aversion + Availability Heuristic",
+    manipulationTechnique: "Urgency engineering compresses decision time, suppressing analytical 'System 2' thinking in favour of reflexive 'System 1' reactions. The account-suspension threat exploits loss aversion — perceived losses feel twice as painful as equivalent gains, overriding rational verification.",
     preview: {
       type: "email",
       from: "support@secure-bank-verify.com",
@@ -75,6 +79,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "Matches the 2016 Ubiquiti Networks BEC attack — attackers impersonated the CEO and stole $46.7 million in a single wire transfer.",
     mitreId: "T1534",
+    cognitiveBias: "Authority Bias",
+    manipulationTechnique: "Hierarchical deference is deeply wired in organizational culture. BEC attacks impersonate C-suite figures knowing most employees comply with leadership requests without independent verification — especially when the request includes an explicit instruction not to verify ('Don't call').",
     preview: {
       type: "email",
       from: "ceo.johnson@company-corp-mail.com",
@@ -104,6 +110,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "This exact technique was used in the 2008 US DoD breach (Operation Buckshot Yankee) — infected drives left in Pentagon parking lots compromised classified networks.",
     mitreId: "T1091",
+    cognitiveBias: "Curiosity Gap",
+    manipulationTechnique: "The label 'Salaries 2025' creates an information gap the brain is compelled to close. Baiting exploits intrinsic curiosity as a social engineering vector — the more taboo or desirable the label, the stronger the urge to override caution.",
     preview: { type: "device", body: "USB drive found near the building entrance. Label reads: 'Salaries 2025 — Confidential'." },
     choices: [
       { id: "a", label: "Plug it in to find the owner", correct: false, explanation: "USB drops are a common attack to deliver malware on insertion." },
@@ -128,6 +136,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "This technique was used in the 2022 Twilio and Cloudflare attacks — employees were lured to pixel-perfect fake login pages that harvested credentials in real time.",
     mitreId: "T1566.002",
+    cognitiveBias: "Pattern Recognition Failure",
+    manipulationTechnique: "The human visual cortex processes logos, colours, and layout as a holistic pattern. Pixel-perfect clones satisfy this Gestalt pattern match while the subdomain difference evades conscious scrutiny — especially under the cognitive load of a normal workday.",
     preview: {
       type: "url",
       url: "https://accounts-google.secure-login-portal.io/signin",
@@ -156,6 +166,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "This vishing technique was central to the 2020 Twitter hack — attackers called Twitter staff impersonating IT to gain access to internal tools, then hijacked accounts of Obama, Biden, and Elon Musk.",
     mitreId: "T1598",
+    cognitiveBias: "Authority Bias + Social Compliance",
+    manipulationTechnique: "Vishing layers two of Cialdini's six influence principles — authority (IT department) and urgency (EOD deadline). Phone channels feel more immediate and credible than email, and the social norm of being helpful to colleagues suppresses the instinct to challenge the caller.",
     preview: {
       type: "message",
       from: "+1 (555) 010-9921",
@@ -184,6 +196,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "Emotet, the most destructive malware of 2017–2020, was delivered almost exclusively through macro-enabled Office documents sent as fake invoices like this one.",
     mitreId: "T1566.001",
+    cognitiveBias: "Familiarity Bias",
+    manipulationTechnique: "Embedding malware in familiar business workflows (invoices) reduces vigilance by satisfying schema expectations. The 'enable macros to view secure content' prompt is designed to frame a security bypass as a security feature — inverting the actual risk.",
     preview: {
       type: "email",
       from: "billing@acmme-supplies.com",
@@ -213,6 +227,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "Rogue AP attacks are demonstrated annually at DEF CON. In 2017, researchers intercepted unencrypted credentials from hundreds of conference attendees within minutes of setting up a fake AP.",
     mitreId: "T1557",
+    cognitiveBias: "Optimism Bias",
+    manipulationTechnique: "People systematically underestimate personal risk while accurately estimating population risk — 'this won't happen to me.' Open Wi-Fi feels safe because it is common and familiar. The combination of convenience and optimism bias overrides known security training.",
     preview: {
       type: "message",
       from: "Available networks",
@@ -241,6 +257,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "FakeUpdates (SocGholish) — active since 2018 and still among the top malware campaigns — uses fake browser update overlays to deliver remote access trojans to tens of thousands of victims.",
     mitreId: "T1189",
+    cognitiveBias: "Automation Bias",
+    manipulationTechnique: "Repeated legitimate interactions with browser update prompts create conditioned trust in the UI pattern. Fake overlays exploit this automation bias — users respond to the familiar visual template without evaluating its source, treating the pop-up as a trusted system message.",
     preview: {
       type: "popup",
       body: "⚠ Your Chrome browser is critically out of date! A security update is required immediately. Click Install to download ChromeUpdate.exe and protect your system.",
@@ -268,6 +286,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "In 2022, the FBI issued a public alert after attackers planted fake QR code stickers on parking meters across Austin, San Antonio, and Houston — harvesting payment data from hundreds of victims.",
     mitreId: "T1566.002",
+    cognitiveBias: "Convenience Bias + Trust by Proximity",
+    manipulationTechnique: "QR codes are opaque to pre-screening — their destination is hidden until scanned. The physical context of an official meter transfers legitimacy to the fraudulent code. Convenience eliminates the pause needed for verification.",
     preview: {
       type: "url",
       url: "https://parkpay-secure.app/pay?meter=3321",
@@ -296,6 +316,8 @@ export const SCENARIOS: Scenario[] = [
     ],
     realWorldExample: "Slack bot impersonation was used in the 2022 Rockstar Games breach — attackers used this technique to access GTA VI development footage and source code, causing hundreds of millions in damages.",
     mitreId: "T1566.002",
+    cognitiveBias: "Conditioned Response + Fear of Loss",
+    manipulationTechnique: "Legitimate platforms have trained users to react quickly to security alerts — a conditioned Pavlovian response. Platform impersonation hijacks this conditioned reflex, pairing the fear of account compromise with a fraudulent action that serves the attacker.",
     preview: {
       type: "message",
       from: "Slackbot (impersonator)",

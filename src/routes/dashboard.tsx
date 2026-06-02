@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { useGame } from "@/lib/game-store";
-import { SCENARIOS, getLevel } from "@/lib/scenarios";
-import { Activity, Award, Target, Timer, TrendingUp } from "lucide-react";
+import { SCENARIOS, getLevel, type AttackVector } from "@/lib/scenarios";
+import { Activity, Award, CheckCircle2, Grid3x3, Target, Timer, TrendingUp, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -127,6 +127,62 @@ function DashboardPage() {
                 );
               })}
             </div>
+          </div>
+        </div>
+
+        {/* ── Competency grid ── */}
+        <div className="rounded-2xl border border-border bg-cardx p-6">
+          <h3 className="font-semibold flex items-center gap-2 mb-1">
+            <Grid3x3 className="h-4 w-4 text-neon" /> Competency Grid
+          </h3>
+          <p className="text-xs text-muted-foreground mb-5">
+            Each scenario mapped to its attack vector. Colour indicates mastery.
+          </p>
+          <div className="space-y-3">
+            {(["urgency", "authority", "technical", "social", "process"] as AttackVector[]).map((vector) => {
+              const vectorScenarios = SCENARIOS.filter((s) => s.attackVector === vector);
+              return (
+                <div key={vector} className="flex items-center gap-3">
+                  <div className="w-24 shrink-0 font-mono text-[10px] uppercase text-muted-foreground capitalize">
+                    {vector}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {vectorScenarios.map((s) => {
+                      const attempt = state.attempts.find((a) => a.scenarioId === s.id);
+                      const status = !attempt ? "untried" : attempt.correct ? "pass" : "fail";
+                      return (
+                        <div
+                          key={s.id}
+                          title={s.title}
+                          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs transition ${
+                            status === "pass"
+                              ? "border-success/40 bg-success/10 text-success"
+                              : status === "fail"
+                              ? "border-destructive/40 bg-destructive/10 text-destructive"
+                              : "border-border bg-secondary/40 text-muted-foreground"
+                          }`}
+                        >
+                          {status === "pass" ? (
+                            <CheckCircle2 className="h-3 w-3 shrink-0" />
+                          ) : status === "fail" ? (
+                            <XCircle className="h-3 w-3 shrink-0" />
+                          ) : (
+                            <div className="h-3 w-3 rounded-full border border-current shrink-0" />
+                          )}
+                          <span className="hidden sm:inline truncate max-w-[120px]">{s.title}</span>
+                          <span className="sm:hidden font-mono text-[10px]">{s.id.toUpperCase()}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 flex items-center gap-4 text-[11px] text-muted-foreground font-mono">
+            <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-success" /> Mastered</span>
+            <span className="flex items-center gap-1"><XCircle className="h-3 w-3 text-destructive" /> Needs work</span>
+            <span className="flex items-center gap-1"><div className="h-3 w-3 rounded-full border border-muted-foreground" /> Not attempted</span>
           </div>
         </div>
 

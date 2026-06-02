@@ -2,12 +2,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
+  BrainCircuit,
   CheckCircle2,
   Flag,
   Globe,
   XCircle,
 } from "lucide-react";
 import type { Choice, Scenario } from "@/lib/scenarios";
+import { useResearchMode } from "@/lib/research-mode";
 
 export function FeedbackOverlay({
   scenario,
@@ -24,6 +26,7 @@ export function FeedbackOverlay({
   isLast: boolean;
   patternNote?: string;
 }) {
+  const { on: researchOn } = useResearchMode();
   const correct = !!chosen?.correct;
   const timedOut = chosen === null;
   const correctChoice = scenario.choices.find((c) => c.correct);
@@ -124,6 +127,33 @@ export function FeedbackOverlay({
               </p>
             </Section>
 
+            {/* Layer 5 — Psychology (research mode only) */}
+            {researchOn && (
+              <Section
+                color="purple"
+                label={<><BrainCircuit className="h-3.5 w-3.5" /> Psychology of this attack</>}
+              >
+                <div className="space-y-2">
+                  <div>
+                    <span className="font-mono text-[10px] uppercase text-purple-400">
+                      Cognitive bias exploited
+                    </span>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      {scenario.cognitiveBias}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-mono text-[10px] uppercase text-purple-400">
+                      Manipulation technique
+                    </span>
+                    <p className="mt-0.5 text-sm text-muted-foreground leading-relaxed">
+                      {scenario.manipulationTechnique}
+                    </p>
+                  </div>
+                </div>
+              </Section>
+            )}
+
             {/* Layer 4 — Pattern note (only if attacker pattern detected) */}
             {patternNote && (
               <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/8 p-3">
@@ -161,6 +191,7 @@ const borderColor = {
   destructive: "border-destructive/30 bg-destructive/5",
   warning: "border-amber-500/30 bg-amber-500/5",
   neon: "border-neon/30 bg-neon/5",
+  purple: "border-purple-500/30 bg-purple-500/5",
 };
 
 const labelColor = {
@@ -168,6 +199,7 @@ const labelColor = {
   destructive: "text-destructive",
   warning: "text-amber-400",
   neon: "text-neon",
+  purple: "text-purple-400",
 };
 
 function Section({

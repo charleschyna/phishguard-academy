@@ -8,13 +8,18 @@ import {
   CheckCircle2,
   ChevronDown,
   ClipboardCopy,
+  Flame,
   RotateCcw,
+  Star,
+  Trophy,
   TrendingUp,
   XCircle,
+  Zap,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useGame, getVulnerabilityProfile, getPatternInsights } from "@/lib/game-store";
 import { SCENARIOS, getLevel } from "@/lib/scenarios";
+import { ACHIEVEMENTS, getUnlockedAchievements } from "@/lib/achievements";
 
 export const Route = createFileRoute("/results")({
   component: ResultsPage,
@@ -55,7 +60,7 @@ function labelPos(idx: number) {
   return { x: CX + r * Math.cos(angle), y: CY + r * Math.sin(angle) };
 }
 
-function textAnchor(idx: number): string {
+function textAnchor(idx: number): "middle" | "end" | "start" {
   const cos = Math.cos((idx / N) * Math.PI * 2 - Math.PI / 2);
   if (Math.abs(cos) < 0.25) return "middle";
   return cos < 0 ? "end" : "start";
@@ -112,6 +117,9 @@ function ResultsPage() {
 
   // Pattern insights
   const insights = getPatternInsights(state.attempts, SCENARIOS);
+
+  // Achievements
+  const unlockedIds = new Set(getUnlockedAchievements(state).map((a) => a.id));
 
   // Wrong attempts for debrief
   const wrongAttempts = state.attempts.filter((a) => !a.correct);
@@ -374,6 +382,65 @@ function ResultsPage() {
             )}
           </motion.div>
         </div>
+
+        {/* ── Achievements ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22 }}
+          className="rounded-2xl border border-border bg-cardx p-6"
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <Trophy className="h-4 w-4 text-warning" />
+            <h3 className="font-semibold">Achievements</h3>
+            <span className="ml-auto font-mono text-[11px] text-muted-foreground">
+              {unlockedIds.size} / {ACHIEVEMENTS.length} unlocked
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-5">
+            Earned by demonstrating specific skills across training sessions.
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {ACHIEVEMENTS.map((ach) => {
+              const unlocked = unlockedIds.has(ach.id);
+              const RarityIcon =
+                ach.rarity === "epic" ? Flame : ach.rarity === "rare" ? Zap : Star;
+              const rarityColor =
+                ach.rarity === "epic"
+                  ? "text-orange-400"
+                  : ach.rarity === "rare"
+                  ? "text-warning"
+                  : "text-muted-foreground";
+              return (
+                <div
+                  key={ach.id}
+                  className={`rounded-xl border p-4 transition ${
+                    unlocked
+                      ? ach.rarity === "epic"
+                        ? "border-orange-500/40 bg-orange-500/8"
+                        : ach.rarity === "rare"
+                        ? "border-warning/40 bg-warning/8"
+                        : "border-border bg-secondary/40"
+                      : "border-border bg-background/30 opacity-40"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <RarityIcon className={`h-4 w-4 ${unlocked ? rarityColor : "text-muted-foreground"}`} />
+                    <span className={`font-mono text-[9px] uppercase ${rarityColor}`}>
+                      {ach.rarity}
+                    </span>
+                  </div>
+                  <div className={`text-sm font-semibold ${unlocked ? "" : "text-muted-foreground"}`}>
+                    {ach.title}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                    {ach.desc}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
 
         {/* ── Structured debrief (wrong answers) ── */}
         {wrongAttempts.length > 0 && (
