@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -20,6 +20,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useGame, getVulnerabilityProfile, getPatternInsights } from "@/lib/game-store";
 import { SCENARIOS, getLevel } from "@/lib/scenarios";
 import { ACHIEVEMENTS, getUnlockedAchievements } from "@/lib/achievements";
+import { saveToLeaderboard, saveToCloud } from "@/lib/leaderboard-store";
 
 export const Route = createFileRoute("/results")({
   component: ResultsPage,
@@ -117,6 +118,27 @@ function ResultsPage() {
 
   // Pattern insights
   const insights = getPatternInsights(state.attempts, SCENARIOS);
+
+  // Persist this session to the leaderboard on first render
+  useEffect(() => {
+    if (!state.startedAt || state.attempts.length === 0) return;
+    const entry = {
+      sessionId: String(state.startedAt),
+      username: state.username || "Anonymous",
+      role: state.role || "",
+      xp: state.xp,
+      accuracy,
+      bestStreak: state.bestStreak,
+      rankName: current.name,
+      avgTimeMs: total
+        ? state.attempts.reduce((s, a) => s + a.timeMs, 0) / total
+        : 0,
+      completedAt: Date.now(),
+    };
+    saveToLeaderboard(entry);
+    saveToCloud(entry).catch(() => {/* local save already succeeded */});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.startedAt]);
 
   // Achievements
   const unlockedIds = new Set(getUnlockedAchievements(state).map((a) => a.id));
