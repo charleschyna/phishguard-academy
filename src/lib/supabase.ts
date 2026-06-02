@@ -28,11 +28,13 @@
  *   VITE_SUPABASE_ANON_KEY=eyJ...
  */
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(
-  /\/+$/,
-  "",
-);
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const SUPABASE_URL = (
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
+  "https://lhcskzcqybpjgrpwwjoe.supabase.co"
+)?.replace(/\/+$/, "");
+const SUPABASE_ANON_KEY =
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoY3NremNxeWJwamdycHd3am9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNTE0MTQsImV4cCI6MjA5NTkyNzQxNH0.qiencrfg0ebVZZGwLViza3kpW5WVK6YpjnzZwFyZYus";
 
 export const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
